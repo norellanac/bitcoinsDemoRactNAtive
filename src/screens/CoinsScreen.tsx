@@ -8,7 +8,9 @@ import {
   Spinner,
   Pressable,
   Button,
-  Stack,
+  IconButton,
+  Divider,
+  Input,
   Center,
   useColorModeValue,
   Avatar,
@@ -16,19 +18,21 @@ import {
   Spacer,
   Slide,
 } from 'native-base';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import {TouchableOpacity, SafeAreaView, ScrollView} from 'react-native';
 import {View, FlatList, ActivityIndicator} from 'react-native';
+import {useNetInfo} from '@react-native-community/netinfo';
 import {StackScreenProps} from '@react-navigation/stack';
 import FooterNavigation from '../components/FooterNavigation';
+import HeaderNavigation from '../components/HeaderNavigation';
 
 interface Props extends StackScreenProps<any, any> {}
 export const CoinsScreen = ({navigation}: Props) => {
   const colorScheme = useColorModeValue('yellow.500', 'green.300');
   const darkModeScheme = useColorModeValue('blueGray.50', 'blueGray.900');
-  const [isOpenTop, setIsOpenTop] = React.useState(false);
-  const str = `${isOpenTop ? 'Hide' : 'Check Internet Connection'}`;
   const [isLoading, setLoading] = useState(true);
   const [data, setData] = useState([]);
+  const [searchText, steSearchText] = useState('');
 
   const getRecords = async () => {
     try {
@@ -44,6 +48,16 @@ export const CoinsScreen = ({navigation}: Props) => {
     }
   };
 
+  const filterRecords = (text: string) => {
+    console.log('filtering:', text);
+
+    setData(
+      data.filter(data => {
+        return data?.name.includes(text);
+      }),
+    );
+  };
+
   useEffect(() => {
     getRecords();
   }, []);
@@ -55,18 +69,29 @@ export const CoinsScreen = ({navigation}: Props) => {
       width="100%"
       alignSelf="center"
       bg={darkModeScheme}>
-      <Slide in={isOpenTop} placement="top">
-        <Alert justifyContent="center" status="error">
-          <Alert.Icon />
-          <Text color="error.600" fontWeight="medium">
-            No Internet Connection
-          </Text>
-        </Alert>
-      </Slide>
-      <Heading size="lg">Welcome to Cryptoapp</Heading>
-      <Heading mt="1" size="xs">
-        Sign in to continue!
-      </Heading>
+      <HeaderNavigation navigation={navigation} />
+      <VStack my="0.5" space={5} w="100%" safeAreaBottom>
+        <VStack w="95%" space={5} alignSelf="center">
+          <Input
+            onChangeText={text => (
+              steSearchText(text), filterRecords(searchText)
+            )}
+            placeholder="Search a crypto name"
+            variant="filled"
+            width="100%"
+            borderRadius="10"
+            borderWidth="0"
+            InputRightElement={
+              <IconButton
+                onPress={() => {
+                  filterRecords(searchText);
+                }}
+                icon={<Icon name="search" size={25} color="darkorange" />}
+              />
+            }
+          />
+        </VStack>
+      </VStack>
       <ScrollView>
         {isLoading ? (
           <Center mt={200}>
@@ -122,7 +147,7 @@ export const CoinsScreen = ({navigation}: Props) => {
                           color: 'warmGray.50',
                         }}
                         alignSelf="flex-start">
-                        {item.rank}
+                        {item?.rank}
                       </Text>
                     </HStack>
                   </Box>
@@ -132,16 +157,6 @@ export const CoinsScreen = ({navigation}: Props) => {
           })
         )}
       </ScrollView>
-
-      <Box w="80%">
-        <Button
-          mt="auto"
-          onPress={() => setIsOpenTop(!isOpenTop)}
-          variant="unstyled"
-          bg="coolGray.700:alpha.30">
-          {str}
-        </Button>
-      </Box>
       <FooterNavigation navigation={navigation} selected={0} />
     </Box>
   );

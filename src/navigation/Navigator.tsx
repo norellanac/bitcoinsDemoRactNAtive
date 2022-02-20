@@ -1,6 +1,7 @@
 import React, {useContext} from 'react';
 import {LoginScreen} from '../screens/LoginScreen';
 import {DashboardScreen} from '../screens/DashboardScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 import {CoinsScreen} from '../screens/CoinsScreen';
 import {createStackNavigator} from '@react-navigation/stack';
 
@@ -14,6 +15,7 @@ export const Navigator = () => {
       }}>
       <Stack.Screen name="LoginScreen" component={LoginScreen} />
       <Stack.Screen name="CoinsScreen" component={CoinsScreen} />
+      <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
       <Stack.Screen name="DashboardScreen" component={DashboardScreen} />
     </Stack.Navigator>
   );
