@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState, useRef} from 'react';
 import {
   Box,
   Text,
@@ -16,7 +16,22 @@ import {
   Spacer,
   Slide,
 } from 'native-base';
-import {TouchableOpacity, SafeAreaView, ScrollView} from 'react-native';
+import {
+  LineChart,
+  BarChart,
+  PieChart,
+  ProgressChart,
+  ContributionGraph,
+  StackedBarChart,
+} from 'react-native-chart-kit';
+import {
+  TouchableOpacity,
+  SafeAreaView,
+  ScrollView,
+  Dimensions,
+} from 'react-native';
+
+import {useNetInfo} from '@react-native-community/netinfo';
 import {View, FlatList, ActivityIndicator} from 'react-native';
 import {StackScreenProps} from '@react-navigation/stack';
 import FooterNavigation from '../components/FooterNavigation';
@@ -24,30 +39,59 @@ import HeaderNavigation from '../components/HeaderNavigation';
 
 interface Props extends StackScreenProps<any, any> {}
 export const DashboardScreen = ({navigation}: Props) => {
+  const netInfo = useNetInfo();
   const colorScheme = useColorModeValue('yellow.500', 'green.300');
   const darkModeScheme = useColorModeValue('blueGray.50', 'blueGray.900');
-  const [isOpenTop, setIsOpenTop] = React.useState(false);
-  const str = `${isOpenTop ? 'Hide' : 'Check Internet Connection'}`;
+  const [isDataUpdated, steIsDataUpdated] = React.useState(false);
+  const [maxTimesFetch, setMaxTimesFetch] = React.useState(0);
+  const [secondsData, setSecondsData] = React.useState(30);
+  const [timeCounter, setTimeCounter] = React.useState(30);
+  const str = `${isDataUpdated ? 'Hide' : 'Check Internet Connection'}`;
   const [isLoading, setLoading] = useState(true);
   const [data, setData] = useState([]);
 
   const getRecords = async () => {
+    console.log('fetching api records');
+    steIsDataUpdated(true);
     try {
       const response = await fetch(
-        'https://api.coinlore.net/api/tickers/?start=100&limit=50',
+        'https://api.coinlore.net/api/ticker/?id=80',
       );
       const json = await response.json();
-      setData(json.data);
+      setData(json);
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
+      setMaxTimesFetch(maxTimesFetch + 1);
+      hideSlideData();
+      console.log('end request, fetch times', maxTimesFetch);
     }
+  };
+  const hideSlideData = () => {
+    steIsDataUpdated(false);
   };
 
   useEffect(() => {
-    getRecords();
-  }, []);
+    if (maxTimesFetch < 3 && netInfo?.isConnected) {
+      if (timeCounter === 30) {
+        getRecords();
+      }
+      if (timeCounter > 0) {
+        const timeout = setTimeout(() => {
+          setTimeCounter(timeCounter - 1);
+        }, 100);
+
+        return () => {
+          clearTimeout(timeout);
+        };
+      } else {
+        setTimeCounter(30);
+      }
+    } else {
+      setTimeCounter(30);
+    }
+  }, [timeCounter, netInfo?.isConnected]);
 
   return (
     <Box
@@ -57,18 +101,14 @@ export const DashboardScreen = ({navigation}: Props) => {
       alignSelf="center"
       bg={darkModeScheme}>
       <HeaderNavigation navigation={navigation} />
-      <Slide in={isOpenTop} placement="top">
-        <Alert justifyContent="center" status="error">
+      <Slide in={isDataUpdated} placement="top">
+        <Alert justifyContent="center" status="info">
           <Alert.Icon />
-          <Text color="error.600" fontWeight="medium">
-            No Internet Connection
+          <Text color="info.600" fontWeight="medium">
+            Updating records {maxTimesFetch}
           </Text>
         </Alert>
       </Slide>
-      <Heading size="lg">Welcome to Cryptoapp</Heading>
-      <Heading mt="1" size="xs">
-        Sign in to continue!
-      </Heading>
       <ScrollView>
         {isLoading ? (
           <Center mt={200}>
@@ -133,17 +173,57 @@ export const DashboardScreen = ({navigation}: Props) => {
             );
           })
         )}
+        <View>
+          <Text>Nex Line Chart update in : {timeCounter}, remaining</Text>
+          <LineChart
+            data={{
+              labels: ['January', 'February', 'March', 'April', 'May', 'June'],
+              datasets: [
+                {
+                  data: [
+                    Math.random() * 100,
+                    Math.random() * 100,
+                    Math.random() * 100,
+                    Math.random() * 100,
+                    Math.random() * 100,
+                    Math.random() * 100,
+                  ],
+                },
+              ],
+            }}
+            width={Dimensions.get('window').width} // from react-native
+            height={220}
+            yAxisLabel="$"
+            yAxisSuffix="k"
+            yAxisInterval={1} // optional, defaults to 1
+            chartConfig={{
+              backgroundColor: '#e26a00',
+              backgroundGradientFrom: '#fb8c00',
+              backgroundGradientTo: '#ffa726',
+              decimalPlaces: 2, // optional, defaults to 2dp
+              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              style: {
+                borderRadius: 16,
+              },
+              propsForDots: {
+                r: '6',
+                strokeWidth: '2',
+                stroke: '#ffa726',
+              },
+            }}
+            bezier
+            style={{
+              marginVertical: 8,
+              borderRadius: 16,
+            }}
+          />
+        </View>
       </ScrollView>
-      <Box w="10080%">
-        <Button
-          mt="auto"
-          onPress={() => setIsOpenTop(!isOpenTop)}
-          variant="unstyled"
-          bg="coolGray.700:alpha.30">
-          {str}
-        </Button>
-      </Box>
       <FooterNavigation navigation={navigation} selected={0} />
     </Box>
   );
 };
+function usePrevious(maxTimesFetch: number) {
+  throw new Error('Function not implemented.');
+}
