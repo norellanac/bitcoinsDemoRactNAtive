@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import {
   Box,
@@ -10,11 +10,22 @@ import {
 } from 'native-base';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {StackScreenProps} from '@react-navigation/stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Props extends StackScreenProps<any, any> {}
 const HeaderNav = ({navigation}: Props) => {
   const colorScheme = useColorModeValue('yellow.500', 'green.300');
   const darkModeScheme = useColorModeValue('blueGray.50', 'blueGray.900');
+  const [user, setUser] = useState('');
+  const getLocalData = async () => {
+    let val = await AsyncStorage.getItem('user');
+    setUser(val);
+    console.log('readed local data', val);
+  };
+
+  useEffect(() => {
+    getLocalData();
+  }, []);
   return (
     <>
       <StatusBar bg={darkModeScheme} />
@@ -39,7 +50,7 @@ const HeaderNav = ({navigation}: Props) => {
         </HStack>
         <HStack>
           <Text fontSize="20" fontWeight="bold">
-            USer
+            {user}
           </Text>
           <IconButton
             onPress={() => {

@@ -20,6 +20,7 @@ import {
 import {View} from 'react-native';
 import {StackScreenProps} from '@react-navigation/stack';
 import NativeBaseIcon from '../components/NativeBaseIcon';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Color Switch Component
 export const ToggleDarkMode = () => {
@@ -51,6 +52,19 @@ export const LoginScreen = ({navigation}: Props) => {
   const [password, setPassword] = useState('');
 
   const onPressLogin = async () => {
+    try {
+      let val = await AsyncStorage.getItem('user');
+      console.log('readed local data', val);
+    } catch (e) {
+      return 'light';
+    }
+    try {
+      await AsyncStorage.setItem('user', email);
+      console.log('stored');
+      
+    } catch (e) {
+      console.log(e);
+    }
     navigation.navigate('CoinsScreen');
   };
 
