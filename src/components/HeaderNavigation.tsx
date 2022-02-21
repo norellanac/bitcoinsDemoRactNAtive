@@ -15,7 +15,6 @@ interface Props extends StackScreenProps<any, any> {}
 const HeaderNav = ({navigation}: Props) => {
   const colorScheme = useColorModeValue('yellow.500', 'green.300');
   const darkModeScheme = useColorModeValue('blueGray.50', 'blueGray.900');
-  console.log('navigator: ', navigation);
   return (
     <>
       <StatusBar bg={darkModeScheme} />

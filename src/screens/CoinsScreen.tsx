@@ -27,17 +27,18 @@ import FooterNavigation from '../components/FooterNavigation';
 import HeaderNavigation from '../components/HeaderNavigation';
 
 interface Props extends StackScreenProps<any, any> {}
-export const CoinsScreen = ({navigation}: Props) => {
+export const CoinsScreen = ({navigation, route}: Props) => {
   const colorScheme = useColorModeValue('yellow.500', 'green.300');
   const darkModeScheme = useColorModeValue('blueGray.50', 'blueGray.900');
   const [isLoading, setLoading] = useState(true);
   const [data, setData] = useState([]);
   const [searchText, steSearchText] = useState('');
 
+
   const getRecords = async () => {
     try {
       const response = await fetch(
-        'https://api.coinlore.net/api/tickers/?start=100&limit=50',
+        'https://api.coinlore.net/api/tickers/?start=0&limit=50',
       );
       const json = await response.json();
       setData(json.data);
@@ -107,7 +108,12 @@ export const CoinsScreen = ({navigation}: Props) => {
             return (
               <Box>
                 <Pressable
-                  onPress={() => console.log('You touched me')}
+                  onPress={() => {
+                    navigation.navigate('DashboardScreen', {
+                      itemId: item.id,
+                      name: item.name,
+                    });
+                  }}
                   _dark={{
                     bg: 'coolGray.800',
                   }}

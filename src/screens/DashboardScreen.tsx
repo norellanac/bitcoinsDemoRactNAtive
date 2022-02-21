@@ -38,7 +38,7 @@ import FooterNavigation from '../components/FooterNavigation';
 import HeaderNavigation from '../components/HeaderNavigation';
 
 interface Props extends StackScreenProps<any, any> {}
-export const DashboardScreen = ({navigation}: Props) => {
+export const DashboardScreen = ({navigation, route}: Props) => {
   const netInfo = useNetInfo();
   const colorScheme = useColorModeValue('yellow.500', 'green.300');
   const darkModeScheme = useColorModeValue('blueGray.50', 'blueGray.900');
@@ -49,16 +49,21 @@ export const DashboardScreen = ({navigation}: Props) => {
   const str = `${isDataUpdated ? 'Hide' : 'Check Internet Connection'}`;
   const [isLoading, setLoading] = useState(true);
   const [data, setData] = useState([]);
+  const [chartData, setChartData] = useState([]);
+  const [chartLabels, stChartLabels] = useState([]);
 
   const getRecords = async () => {
     console.log('fetching api records');
     steIsDataUpdated(true);
     try {
       const response = await fetch(
-        'https://api.coinlore.net/api/ticker/?id=80',
+        'https://api.coinlore.net/api/ticker/?id=' + route.params.itemId,
       );
       const json = await response.json();
       setData(json);
+      setChartData([...chartData, parseFloat(json[0]?.price_usd)]);
+      stChartLabels([...chartLabels, '$']);
+      console.log('chartData', chartData, chartLabels);
     } catch (error) {
       console.error(error);
     } finally {
@@ -73,7 +78,7 @@ export const DashboardScreen = ({navigation}: Props) => {
   };
 
   useEffect(() => {
-    if (maxTimesFetch < 3 && netInfo?.isConnected) {
+    if (maxTimesFetch < 4 && netInfo?.isConnected) {
       if (timeCounter === 30) {
         getRecords();
       }
@@ -175,49 +180,46 @@ export const DashboardScreen = ({navigation}: Props) => {
         )}
         <View>
           <Text>Nex Line Chart update in : {timeCounter}, remaining</Text>
-          <LineChart
-            data={{
-              labels: ['January', 'February', 'March', 'April', 'May', 'June'],
-              datasets: [
-                {
-                  data: [
-                    Math.random() * 100,
-                    Math.random() * 100,
-                    Math.random() * 100,
-                    Math.random() * 100,
-                    Math.random() * 100,
-                    Math.random() * 100,
-                  ],
+          {chartData.length ? (
+            <LineChart
+              data={{
+                labels: chartLabels,
+                datasets: [
+                  {
+                    data: chartData,
+                  },
+                ],
+              }}
+              width={Dimensions.get('window').width} // from react-native
+              height={120}
+              yAxisLabel="$"
+              yAxisSuffix="k"
+              yAxisInterval={1} // optional, defaults to 1
+              chartConfig={{
+                backgroundColor: '#e26a00',
+                backgroundGradientFrom: '#fb8c00',
+                backgroundGradientTo: '#ffa726',
+                decimalPlaces: 2, // optional, defaults to 2dp
+                color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+                labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+                style: {
+                  borderRadius: 16,
                 },
-              ],
-            }}
-            width={Dimensions.get('window').width} // from react-native
-            height={220}
-            yAxisLabel="$"
-            yAxisSuffix="k"
-            yAxisInterval={1} // optional, defaults to 1
-            chartConfig={{
-              backgroundColor: '#e26a00',
-              backgroundGradientFrom: '#fb8c00',
-              backgroundGradientTo: '#ffa726',
-              decimalPlaces: 2, // optional, defaults to 2dp
-              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              style: {
+                propsForDots: {
+                  r: '6',
+                  strokeWidth: '2',
+                  stroke: '#ffa726',
+                },
+              }}
+              bezier
+              style={{
+                marginVertical: 8,
                 borderRadius: 16,
-              },
-              propsForDots: {
-                r: '6',
-                strokeWidth: '2',
-                stroke: '#ffa726',
-              },
-            }}
-            bezier
-            style={{
-              marginVertical: 8,
-              borderRadius: 16,
-            }}
-          />
+              }}
+            />
+          ) : (
+            <></>
+          )}
         </View>
       </ScrollView>
       <FooterNavigation navigation={navigation} selected={0} />
