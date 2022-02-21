@@ -77,6 +77,7 @@ export const CoinsScreen = ({navigation, route}: Props) => {
             onChangeText={text => (
               steSearchText(text), filterRecords(searchText)
             )}
+            value={searchText}
             placeholder="Search a crypto name"
             variant="filled"
             width="100%"
@@ -85,9 +86,10 @@ export const CoinsScreen = ({navigation, route}: Props) => {
             InputRightElement={
               <IconButton
                 onPress={() => {
-                  filterRecords(searchText);
+                  getRecords();
+                  steSearchText('');
                 }}
-                icon={<Icon name="search" size={25} color="darkorange" />}
+                icon={<Icon name="window-close" size={25} color="darkorange" />}
               />
             }
           />

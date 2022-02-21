@@ -1,4 +1,4 @@
-# React Native App - Prestashop
+# React Native App - Crypto
 
 _RN App, fetchin and sending data to crypto coins publicc API, using hooks like  useReducer, added navigation and NativeBase UI library,react-navigation
 ✨ ✨
